@@ -66,6 +66,25 @@ describe('<ReactSearchAutocomplete>', () => {
     })
   }
 
+  it('should get results based on searchFunction if defined', () => {
+    const searchFunction = (keyword) => items;
+    const { queryByPlaceholderText, container } = render(
+      <ReactSearchAutocomplete<Item> {...defaultProps} showItemsOnFocus={true} searchFunction={searchFunction} />
+    )
+
+    const inputElement = queryByPlaceholderText(/search/i)
+
+    fireEvent.focusIn(inputElement!)
+
+    fireEvent.change(inputElement!, { target: { value: 'not exist' } })
+
+    proceed()
+
+    const liTags = container.getElementsByTagName('li')
+
+    expect(liTags.length).toBe(4)
+  })
+
   it('renders the search box', () => {
     const { queryByPlaceholderText, container } = render(
       <ReactSearchAutocomplete<Item> {...defaultProps} />
