@@ -39,6 +39,7 @@ export interface ReactSearchAutocompleteProps<T> {
   showItemsOnFocus?: boolean
   maxLength?: number
   className?: string
+  searchFunction?: (keyword: string) => T[]
 }
 
 export default function ReactSearchAutocomplete<T>({
@@ -63,7 +64,8 @@ export default function ReactSearchAutocomplete<T>({
   showNoResultsText = 'No results',
   showItemsOnFocus = false,
   maxLength = 0,
-  className
+  className,
+  searchFunction
 }: ReactSearchAutocompleteProps<T>) {
   const theme = { ...defaultTheme, ...styling }
   const options = { ...defaultFuseOptions, ...fuseOptions }
@@ -81,7 +83,7 @@ export default function ReactSearchAutocomplete<T>({
 
   useEffect(() => {
     setSearchString(inputSearchString)
-    const timeoutId = setTimeout(() => setResults(fuseResults(inputSearchString)), 0)
+    const timeoutId = setTimeout(() => setResults(searchResults(inputSearchString)), 0)
 
     return () => clearTimeout(timeoutId)
   }, [inputSearchString])
@@ -90,7 +92,7 @@ export default function ReactSearchAutocomplete<T>({
     searchString?.length > 0 &&
       results &&
       results?.length > 0 &&
-      setResults(fuseResults(searchString))
+      setResults(searchResults(searchString))
   }, [items])
 
   useEffect(() => {
@@ -132,7 +134,7 @@ export default function ReactSearchAutocomplete<T>({
   const callOnSearch = (keyword: string) => {
     let newResults: T[] = []
 
-    keyword?.length > 0 && (newResults = fuseResults(keyword))
+    keyword?.length > 0 && (newResults = searchResults(keyword))
 
     setResults(newResults)
     onSearch(keyword, newResults)
@@ -151,6 +153,11 @@ export default function ReactSearchAutocomplete<T>({
     onSelect(result)
     setSearchString(result[resultStringKeyName])
     setHighlightedItem(0)
+  }
+
+  const searchResults = (keyword: string) => {
+    const results: any[] = searchFunction ? searchFunction(keyword) : fuseResults(keyword)
+    return results.map((results) => ({ ...results })).slice(0, maxResults)
   }
 
   const fuseResults = (keyword: string) =>
